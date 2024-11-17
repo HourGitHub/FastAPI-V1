@@ -5,6 +5,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db.config import Base
 from app.db.models import User
+import pytz
 
 CAMBODIA_TZ = pytz.timezone('Asia/Phnom_Penh')
 
