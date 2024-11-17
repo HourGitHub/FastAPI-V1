@@ -6,6 +6,8 @@ from datetime import datetime
 from app.db.config import Base
 from app.db.models import User
 
+CAMBODIA_TZ = pytz.timezone('Asia/Phnom_Penh')
+
 class EmailLog(Base):
     __tablename__ = "email_logs"
 
@@ -16,7 +18,7 @@ class EmailLog(Base):
     body = Column(String)  # Body content of the email
     sent_at = Column(DateTime, default=datetime.utcnow)  # Timestamp of when the email was sent
     is_verified = Column(Boolean, default=False)  # Verification status (true/false)
-    expiration_time = Column(DateTime)  # Expiration time for OTP or email link
+    expiration_time = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))  # Link to the user
     user = relationship("User", back_populates="email_logs")
 
