@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 20px auto; background: #ffffff; border: 1px solid #dddddd; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+        <div style="background-color: #4CAF50; color: white; text-align: center; padding: 20px;">
+            <h1 style="margin: 0;">Account Verification</h1>
+        </div>
+        <div style="padding: 20px; line-height: 1.6; color: #333333;">
+            <p>Hello <b>{{ full_name }}</b>,</p>
+            <p>We received a request to verify your account. Use the following OTP to complete the process:</p>
+            <div style="display: inline-block; font-size: 24px; font-weight: bold; background: #f4f4f4; padding: 10px 20px; border-radius: 8px; border: 1px dashed #4CAF50; margin: 10px 0;">
+                {{ otp_code }}
+            </div>
+            <p>The OTP will expire in <b>10 minutes</b>.</p>
+            <p>If you did not make this request, please ignore this email or contact support if you have concerns.</p>
+            <p>Best regards,<br>Your App Team</p>
+        </div>
+        <div style="font-size: 12px; text-align: center; color: #888888; padding: 10px 20px; background-color: #f4f4f4;">
+            <p>This is an automated message. Please do not reply.</p>
+        </div>
+    </div>
+</body>
+</html>
