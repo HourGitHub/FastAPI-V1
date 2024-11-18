@@ -1,5 +1,3 @@
-# app/api/auth/controllers.py
-
 from datetime import datetime, timedelta
 import random
 
@@ -9,7 +7,7 @@ from app.db import models
 from fastapi import HTTPException, Response, status
 from sqlalchemy.orm import Session
 from app.db.models.utility import OTP, Gender, PasswordReset, Role
-from app.schemas.auth import  RegisterUserResponse, LoginRequest, LoginResponse, ResetPasswordRequest, TokenData, UserResponse
+from app.schemas.auth import RegisterUserResponse, LoginRequest, LoginResponse, ResetPasswordRequest, TokenData, UserResponse
 from app.db.models import User
 from app.security.jwt import ALGORITHM, SECRET_KEY, create_access_token, create_refresh_token
 from app.security.passwords import get_password_hash, verify_user_password
@@ -51,7 +49,7 @@ def user_to_response(user: User) -> UserResponse:
         address=user.address,
         image=user.image,
         is_active=user.is_active,
-        created_at=user.created_at.isoformat(),  # Convert to string
+        created_at=user.created_at.astimezone(CAMBODIA_TZ).isoformat(),  # Convert to Cambodia timezone and string
     )
 
 # Function to get all users
@@ -75,7 +73,7 @@ def get_all_users(db: Session):
             address=user.address,
             image=user.image,
             is_active=user.is_active,
-            created_at=user.created_at.isoformat(),  # Convert to string
+            created_at=user.created_at.astimezone(CAMBODIA_TZ).isoformat(),  # Convert to Cambodia timezone and string
         )
         user_responses.append(user_response)
 
@@ -110,14 +108,13 @@ def login_user(login_data: LoginRequest, db: Session, response: Response):
         status=200,
         type="jwt",
         data=TokenData(
-            access_token=access_token,
+            #access_token=access_token,
             access_expires_in=3600,  # 1 hour
-            refresh_token=refresh_token,
+            #refresh_token=refresh_token,
             refresh_expires_in=86400,  # 1 day
             token_type="Bearer"
         )
     )
-
 
 # Function to get a single user by ID
 def get_user(db: Session, user_id: int):
@@ -138,11 +135,12 @@ def get_user(db: Session, user_id: int):
         address=user.address,
         image=user.image,
         is_active=user.is_active,
-        created_at=user.created_at.isoformat(),  # Convert to string
+        created_at=user.created_at.astimezone(CAMBODIA_TZ).isoformat(),  # Convert to Cambodia timezone and string
     )
 
     return user_response
 
+# Function to register a new user
 def register_user(user_data, db: Session):
     # Check if email already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
@@ -214,43 +212,6 @@ def register_user(user_data, db: Session):
 
 
 
-
-# Request OTP function (already in your code)
-def request_otp(email: str, db: Session):
-    user = db.query(User).filter(User.email == email).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-
-    # Check if an OTP already exists for the email
-    existing_otp = db.query(OTP).filter(OTP.email == email).first()
-    otp_code = random.randint(100000, 999999)
-    expires_in = 600  # OTP expires in 10 minutes
-    expiration_time = datetime.now(CAMBODIA_TZ) + timedelta(seconds=expires_in)
-
-    if existing_otp:
-        # Update existing OTP entry if it already exists
-        existing_otp.otp_code = otp_code
-        existing_otp.expiration_time = expiration_time
-        db.commit()
-    else:
-        # Create new OTP entry
-        otp = OTP(email=email, otp_code=otp_code, expiration_time=expiration_time, user_id=user.id)
-        db.add(otp)
-        db.commit()
-
-    # Send OTP to user's email (This will trigger the OTP email sending)
-    send_otp_to_email(email, otp_code, user.id)
-
-    return {
-        "message": "OTP requested successfully.",
-        "data": {
-            "email": email,
-            "otp_code": otp_code,  # Returning OTP for testing (remove in production)
-            "expires_in": expires_in
-        }
-    }
-
-
 # Verify OTP function (already in your code)
 def verify_otp(db: Session, email: str, otp_code: str):
     # Retrieve the OTP record for the user
@@ -263,9 +224,11 @@ def verify_otp(db: Session, email: str, otp_code: str):
     if otp_record.expiration_time.tzinfo is None:
         otp_record.expiration_time = CAMBODIA_TZ.localize(otp_record.expiration_time)
 
+
     # Compare with the current time in the same timezone
     if otp_record.expiration_time < datetime.now(CAMBODIA_TZ):
         raise HTTPException(status_code=400, detail="OTP has expired")
+
 
     # OTP is valid, proceed to activate the user
     user = db.query(models.User).filter(models.User.email == email).first()
@@ -324,7 +287,7 @@ def reset_password(data: ResetPasswordRequest, db: Session):
             raise HTTPException(status_code=400, detail="Reset token not found or already used.")
 
         # Ensure token hasn't expired
-        if reset_entry.expiry_time < datetime.utcnow():
+        if reset_entry.expiry_time < datetime.now(CAMBODIA_TZ):
             raise HTTPException(status_code=400, detail="Reset token has expired")
 
         # Get the user associated with the reset request
