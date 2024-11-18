@@ -1,10 +1,12 @@
 # app/db/models/utility.py
 
-from datetime import datetime, timedelta
-import pytz
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from app.db.config import Base
+from datetime import datetime
+from sqlalchemy.orm import relationship
+
+from app.utility.utc import CAMBODIA_TZ, get_current_cambodia_time
+
 
 # Brand
 class Brand(Base):
@@ -12,10 +14,10 @@ class Brand(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(String, nullable=True)  # Ensure description is nullable if optional
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    description = Column(String)
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    # products = relationship("Product", back_populates="brand")
+    products = relationship("Product", back_populates="brand")
 
 
 # Category
@@ -24,11 +26,11 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(String, nullable=True)  # Ensure description is nullable if optional
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    description = Column(String)
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    # stocks = relationship("StockItem", back_populates="category")
-    # products = relationship("Product", back_populates="category")
+    stocks = relationship("StockItem", back_populates="category")
+    products = relationship("Product", back_populates="category")
 
 
 # Color
@@ -37,10 +39,10 @@ class Color(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(String, nullable=True)  # Ensure description is nullable if optional
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    description = Column(String)
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    # products = relationship("Product", back_populates="color")
+    products = relationship("Product", back_populates="color")
 
 
 # Gender
@@ -48,11 +50,11 @@ class Gender(Base):
     __tablename__ = 'genders'
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
+    name = Column(String, index=True, unique=True)
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    users = relationship("User", back_populates="gender", passive_deletes=True)
+    users = relationship("User", back_populates="gender")
 
     def __repr__(self):
         return f"<Gender(id={self.id}, name='{self.name}', created_at={self.created_at})>"
@@ -64,10 +66,10 @@ class Model(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(String, nullable=True)  # Ensure description is nullable if optional
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    description = Column(String)
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    # products = relationship("Product", back_populates="model")
+    products = relationship("Product", back_populates="model")
 
 
 # Role
@@ -76,10 +78,13 @@ class Role(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, index=True, nullable=False)
-    description = Column(String, nullable=True)  # Ensure description is nullable if optional
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    description = Column(String, nullable=True)
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    users = relationship("User", back_populates="role", passive_deletes=True)
+    users = relationship("User", back_populates="role")
+
+    def __repr__(self):
+        return f"<Role(id={self.id}, name={self.name})>"
 
 
 # Supplier
@@ -88,13 +93,14 @@ class Supplier(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
-    email = Column(String, unique=True, index=True)
-    phone = Column(String, index=True)
-    location = Column(String, nullable=True)  # Ensure location is nullable if optional
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
-    status = Column(String, default="active")
+    email = Column(String, unique=True, index=True, nullable=True)
+    phone = Column(String, nullable=True)
+    location = Column(String, nullable=True)
+    status = Column(String, nullable=True, default="active")
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    # stocks = relationship("StockItem", back_populates="supplier")
+    # Relationship example (if needed)
+    stocks = relationship("StockItem", back_populates="supplier")
 
 
 # Unit
@@ -105,9 +111,9 @@ class Unit(Base):
     name = Column(String, unique=True, index=True)
     abbreviation = Column(String, nullable=True)
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    # stocks = relationship("StockItem", back_populates="unit")
+    stocks = relationship("StockItem", back_populates="unit")
 
 
 # StockStatus
@@ -116,51 +122,40 @@ class StockStatus(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
-    description = Column(String, nullable=True)  # Ensure description is nullable if optional
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
+    description = Column(String)
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
-    # products = relationship("Product", back_populates="stock_status")
-    # stock_items = relationship("StockItem", back_populates="stock_status")
-
-    def __repr__(self):
-        return f"<StockStatus(id={self.id}, name='{self.name}')>"
+    # Relationship to Product and StockItem
+    products = relationship("Product", back_populates="stock_status")
+    stock_items = relationship("StockItem", back_populates="stock_status")
 
 
-# Otp
+# OTP Model
 class OTP(Base):
-    __tablename__ = "otps"
+    __tablename__ = "otp"
 
     id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, index=True)
+    email = Column(String, unique=True, index=True)  # Ensure it's unique for each user.
     otp_code = Column(Integer)
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
-    expiry_at = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(minutes=10))
+    expiration_time = Column(DateTime, default=get_current_cambodia_time) 
+    user_id = Column(Integer, ForeignKey("users.id"))
 
-    def is_expired(self):
-        return datetime.utcnow() > self.expiry_at
+    user = relationship("User", back_populates="otp_codes")
+
+    def __repr__(self):
+        return f"<OTP(email={self.email}, otp_code={self.otp_code}, expiration_time={self.expiration_time})>"
 
 
 # Password Reset
 class PasswordReset(Base):
     __tablename__ = "password_resets"
-    
+
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, index=True)
     token = Column(String, index=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
-    expiry_at = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(minutes=10))
+    expiry_at = Column(DateTime, default=get_current_cambodia_time) 
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
     def is_expired(self):
-        return datetime.utcnow() > self.expiry_at
-
-
-# # Token Blacklist
-# class TokenBlacklist(Base):
-#     __tablename__ = "token_blacklist"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     user_id = Column(Integer, ForeignKey("users.id"))
-#     refresh_token = Column(String)
-#     created_at = Column(DateTime, default=lambda: datetime.now(pytz.timezone('Asia/Bangkok')))
-#     user = relationship("User")
+        return datetime.now(CAMBODIA_TZ) > self.expiration_time
 

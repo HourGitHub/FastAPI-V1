@@ -1,133 +1,127 @@
 # app/schemas/utility.py
 
-from datetime import datetime
 from pydantic import BaseModel
+from datetime import datetime
 from typing import Optional
+
+from app.db.models.utility import Supplier
+
+# =====================
+# Status
+# =====================
+
+class StockStatusCreate(BaseModel):
+    name: str  # Now just a plain string for name
+    description: Optional[str] = None  # Optional description
+
+# StatusResponse schema, keeping name as string
+class StatusResponse(BaseModel):
+    id: int
+    name: str  # Keep it as a plain string for name
+    description: Optional[str] = None  # Optional description
+    created_at: datetime  # Added created_at
+
+    class Config:
+        from_attributes = True
+
+
+
+
+class RoleCreateRequest(BaseModel):
+    name: str
+    description: Optional[str] = None  # Optional description for the role
+
+    class Config:
+        from_attributes = True
+
+class RoleResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None  # Optional description
+    created_at: datetime  # Added created_at
+
+    class Config:
+        from_attributes = True
+
+class GenderCreateRequest(BaseModel):
+    name: str
+    description: Optional[str] = None  # Optional description for gender
+
+    class Config:
+        from_attributes = True
+
+class GenderResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None  # Optional description
+    created_at: datetime  # Added created_at
+
+    class Config:
+        from_attributes = True
 
 # =====================
 # Brand
 # =====================
 class BrandCreate(BaseModel):
     name: str
-    description: str
+    description: Optional[str] = None  # Optional description
 
 class BrandResponse(BaseModel):
     id: int
     name: str
-    description: str
-    created_at: datetime
+    description: Optional[str] = None  # Optional description
+    created_at: datetime  # Added created_at
 
     class Config:
         from_attributes = True
-        orm_mode = True
-
 
 # =====================
 # Category
 # =====================
 class CategoryCreate(BaseModel):
     name: str
-    description: str
+    description: Optional[str] = None  # Optional description
 
 class CategoryResponse(BaseModel):
     id: int
     name: str
-    description: str
-    created_at: datetime
+    description: Optional[str] = None  # Optional description
+    created_at: datetime  # Added created_at
 
     class Config:
         from_attributes = True
-        orm_mode = True
-
 
 # =====================
 # Color
 # =====================
 class ColorCreate(BaseModel):
     name: str
-    description: Optional[str] = None
+    description: Optional[str] = None  # Optional field
 
 class ColorResponse(BaseModel):
     id: int
     name: str
-    description: str
-    created_at: datetime
+    description: Optional[str] = None  # Optional description
+    created_at: datetime  # Added created_at
 
     class Config:
         from_attributes = True
-        orm_mode = True
-
 
 # =====================
-# Gender
-# =====================
-class GenderCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-
-class GenderResponse(BaseModel):
-    id: int
-    name: str
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
-
-
-# =====================
-# Model
+# Models
 # =====================
 class ModelCreate(BaseModel):
     name: str
-    description: str
+    description: Optional[str] = None  # Optional description
 
 class ModelResponse(BaseModel):
     id: int
     name: str
-    description: str
-    created_at: datetime
+    description: Optional[str] = None  # Optional description
+    created_at: datetime  # Added created_at
 
     class Config:
         from_attributes = True
-        orm_mode = True
-
-
-# =====================
-# Role
-# =====================
-class RoleCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-
-class RoleResponse(BaseModel):
-    id: int
-    name: str
-    description: Optional[str] = None
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
-
-
-# =====================
-# Status
-# =====================
-class StockStatusCreate(BaseModel):
-    name: str
-    description: str
-
-# StockStatusResponse schema for returning stock status details in response
-class StockStatusResponse(BaseModel):
-    id: int
-    name: str
-    description: str
-    created_at: datetime  # Ensure the field is returned as a datetime object
-
-    class Config:
-        from_attributes = True
-        orm_mode = True
-
 
 # =====================
 # Supplier
@@ -139,50 +133,35 @@ class ContactInfo(BaseModel):
 
 class SupplierCreate(BaseModel):
     name: str
-    email: Optional[str] = None
-    phone: Optional[str] = None
-    location: Optional[str] = None
-    status: Optional[str] = "active"
+    contact_info: Optional[ContactInfo] = None  # The contact_info field now holds email, phone, and location
+    status: Optional[str] = "active"  # Default is 'active'
 
 class SupplierResponse(BaseModel):
     id: int
     name: str
-    contact_info: ContactInfo
+    contact_info: ContactInfo  # ContactInfo is part of the response
     status: str
+    created_at: datetime  # Automatically generated on supplier creation
 
     class Config:
         from_attributes = True
-        orm_mode = True
 
-    @classmethod
-    def from_orm(cls, supplier):
-        return cls(
-            id=supplier.id,
-            name=supplier.name,
-            contact_info=ContactInfo(
-                email=supplier.email,
-                phone=supplier.phone,
-                location=supplier.location,
-            ),
-            status=supplier.status,
-        )
 
 
 # =====================
-# Unit
+# Units
 # =====================
 class UnitCreate(BaseModel):
     name: str
     abbreviation: str
-    description: str
+    description: Optional[str] = None  # Optional description
 
 class UnitResponse(BaseModel):
     id: int
     name: str
     abbreviation: str
-    created_at: datetime
-    description: str
+    created_at: datetime  # Added created_at
+    description: Optional[str] = None  # Optional description
 
     class Config:
         from_attributes = True
-        orm_mode = True

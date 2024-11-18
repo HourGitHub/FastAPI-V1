@@ -1,72 +1,67 @@
 # app/api/auth/routes.py
 
-from fastapi import APIRouter, Depends
-from app.api.auth.controllers import (
-    register_user, login_user, request_otp, verify_otp, forgot_password, reset_password, 
-    change_email, update_user, delete_user
-)
-
-from sqlalchemy.orm import Session 
-from app.db import get_db
-from app.schemas.auth import ChangeEmail, ForgotPasswordRequest, OtpRequest, OtpResponse, OtpVerify, RefreshTokenRequest, RefreshTokenResponse, ResetPassword, UserCreate, UserLogin, UserResponse, UserUpdate
-
-auth_router = APIRouter()
-
-# User Registration Endpoint
-@auth_router.post("/register", response_model=UserResponse)
-def register(user: UserCreate, db: Session = Depends(get_db)):
-    return register_user(user, db)
+from app.security.jwt import get_access_token
+from fastapi import APIRouter, Depends, HTTPException, Response
+from sqlalchemy.orm import Session
+from app.api.auth.controllers import change_email, forgot_password, get_all_users, get_current_user, get_user, register_user, login_user, request_otp, reset_password, user_to_response, verify_otp
+from app.db.config import get_db
+from app.schemas.auth import ChangeEmailRequest, ForgotPasswordRequest, LoginResponse, OTPVerifyRequest, RegisterUserRequest, LoginRequest, RegisterUserResponse, RequestOTPRequest, ResetPasswordRequest, UserResponse
 
 
-# User Login Endpoint
-@auth_router.post("/login", response_model=UserResponse)
-def login(user: UserLogin, db: Session = Depends(get_db)):
-    return login_user(user, db)
+auth = APIRouter()
+
+# Route to get the current logged-in user
+@auth.get("/current-user", response_model=UserResponse)
+def get_current_user_route(db: Session = Depends(get_db), token: str = Depends(get_access_token)):
+    # Get the current user by passing the token and the DB session
+    user = get_current_user(db=db, token=token)
+    
+    # Convert the user to a response format
+    return user_to_response(user)
+
+# Route for fetching all users
+@auth.get("/users", response_model=list[UserResponse])
+def get_all_users_route(db: Session = Depends(get_db)):
+    return get_all_users(db=db)
+
+# Route for fetching a user by ID
+@auth.get("/users/{user_id}", response_model=UserResponse)
+def get_user_details(user_id: int, db: Session = Depends(get_db)):
+    return get_user(db=db, user_id=user_id)
 
 
-# Request OTP Endpoint
-@auth_router.post("/request-otp", response_model=OtpResponse)
-def request_otp(otp_request: OtpRequest, db: Session = Depends(get_db)):
-    return request_otp(otp_request, db)
+@auth.post("/register", response_model=RegisterUserResponse)
+def register_user_route(user_data: RegisterUserRequest, db: Session = Depends(get_db)):
+    try:
+        return register_user(user_data, db)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
+@auth.post("/login", response_model=LoginResponse)
+def login(request: LoginRequest, response: Response, db: Session = Depends(get_db)):
+    return login_user(login_data=request, db=db, response=response)
 
-# Verify OTP Endpoint
-@auth_router.post("/verify-otp")
-def verify_otp(otp_data: OtpVerify, db: Session = Depends(get_db)):
-    return verify_otp(otp_data, db)
+# Request OTP route
+@auth.post("/request-otp")
+def request_otp_endpoint(data: RequestOTPRequest, db: Session = Depends(get_db)):
+    return request_otp(data.email, db)
 
+# Verify OTP route
+@auth.post("/verify-otp")
+def verify_otp_route(otp_request: OTPVerifyRequest, db: Session = Depends(get_db)):
+    return verify_otp(email=otp_request.email, otp_code=otp_request.otp_code, db=db)
 
-# Forgot Password Endpoint
-@auth_router.post("/forgot-password")
-def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
-    return forgot_password(request, db)
+# Forgot Password route
+@auth.post("/forgot-password")
+def forgot_password_endpoint(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    return forgot_password(data.email, db)
 
+# Reset Password route
+@auth.post("/reset-password")
+def reset_password_endpoint(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    return reset_password(data, db)
 
-# Reset Password Endpoint
-@auth_router.post("/reset-password")
-def reset_password(reset_data: ResetPassword, db: Session = Depends(get_db)):
-    return reset_password(reset_data, db)
-
-
-# Change Email Endpoint
-@auth_router.put("/change-email")
-def change_email(email_data: ChangeEmail, db: Session = Depends(get_db)):
-    return change_email(email_data, db)
-
-
-# Update User Info Endpoint
-@auth_router.put("/{user_id}")
-def update_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
-    return update_user(user_id, user_data, db)
-
-
-# Delete User Endpoint
-@auth_router.delete("/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
-    return delete_user(user_id, db)
-
-
-# Refresh Token Endpoint
-@auth_router.post("/refresh-token", response_model=RefreshTokenResponse)
-def refresh(refresh_token: RefreshTokenRequest, db: Session = Depends(get_db)):
-    return refresh_token(refresh_token, db)
+# Change Email route
+@auth.post("/change-email")
+def change_email_endpoint(data: ChangeEmailRequest, db: Session = Depends(get_db)):
+    return change_email(data.current_email, data.new_email, db)

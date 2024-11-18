@@ -1,15 +1,19 @@
 # app/db/__init__.py
 
-from .config import get_db
-from .models.LoginLog import LoginLog  # Corrected import
-from .models.user import User
+from .config import get_db, SessionLocal, engine, Base  
+from .models.utility import Role, Gender, Category, Unit, Supplier
+from .models.inventory import StockItem, Product 
 
-# Importing other models as needed
-from .models.utility import Brand, Category, Color, Gender, Model, Role, StockStatus, Supplier, Unit
-
-# Add to __all__ to ensure these models are available when importing * from this file
 __all__ = [
-    "get_db", "LoginLog", "User", 
-    "Brand", "Category", "Color", "Gender", "Model", "Role", 
-    "StockStatus", "Supplier", "Unit"
+    "get_db", 
+    "SessionLocal", 
+    "engine", 
+    "Base", 
+    "Role", 
+    "Gender", 
+    "StockItem", 
+    "Product", 
+    "Category", 
+    "Unit", 
+    "Supplier"  
 ]

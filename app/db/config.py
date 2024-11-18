@@ -9,15 +9,15 @@ import os
 load_dotenv()
 
 # Retrieve database URL from .env
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Create engine and session
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {})
 
 # Session local for each request
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base model class for all database models
+# Create Base class separately without importing models
 Base = declarative_base()
 
 # Dependency to get DB session for routes
@@ -28,7 +28,8 @@ def get_db():
     finally:
         db.close()
 
-# Initialize database and create tables
+# Initialize the database and create tables
 def init_db():
-    # Create all tables based on the models defined
-    Base.metadata.create_all(bind=engine)
+    # Import models here to avoid circular imports
+    from app.db.models import User, OTP, Role, Gender  # Import all relevant models
+    Base.metadata.create_all(bind=engine) 

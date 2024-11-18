@@ -1,136 +1,131 @@
 # app/schemas/auth.py
 
-from pydantic import BaseModel, EmailStr, validator
-from typing import Optional
+from pydantic import BaseModel, EmailStr, model_validator
 from datetime import datetime
+from typing import Optional
 
-# User Create Schema
-class UserCreate(BaseModel):
+# Request Schema for Registration
+class RegisterUserRequest(BaseModel):
     full_name: str
     email: EmailStr
     password: str
-    role: int  # 1 = Admin, 2 = User
-    gender: int  # 1 = Male, 2 = Female
-    phone: Optional[str] = None
+    password_confirmation: str
+    role: int
+    gender: Optional[int] = None 
+    phone: Optional[str] = None  
     address: Optional[str] = None
-    image: Optional[str] = None
+    image: Optional[str] = None 
+
+    @model_validator(mode='before')
+    def check_password_match(cls, values):
+        password = values.get('password')
+        password_confirmation = values.get('password_confirmation')
+        
+        if password != password_confirmation:
+            raise ValueError("Passwords do not match")
+        
+        return values
+    
+    class Config:
+        from_attributes = True
+
+# Response Schema for Registration
+class RegisterUserResponse(BaseModel):
+    message: str
+    otp_code: int
+    expires_in: int
+    created_at: datetime
+    role: str  # Role name instead of ID
+    # gender: Optional[str]  # Gender name instead of ID (optional)
 
     class Config:
         from_attributes = True
 
-
-# User Login Schema
-class UserLogin(BaseModel):
+# Request Schema for Login
+class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
-    class Config:
-        from_attributes = True
+# Response Schema for Login
+class TokenData(BaseModel):
+    access_token: str
+    access_expires_in: int
+    refresh_token: str
+    refresh_expires_in: int
+    token_type: str = "Bearer"
+
+class LoginResponse(BaseModel):
+    message: str
+    status: int
+    type: str
+    data: TokenData
 
 
-# User Response Schema (used for registration success and OTP response)
 class UserResponse(BaseModel):
-    message: str
-    otp_code: int
-    expires_in: int  # in seconds
-    created_at: datetime
-    role: str  # "Admin" or "User"
-
-    class Config:
-        from_attributes = True
-
-
-# OTP Request Schema (used when requesting an OTP)
-class OtpRequest(BaseModel):
-    email: EmailStr
-
-    class Config:
-        from_attributes = True
-
-
-# OTP Response Schema (used to return OTP details)
-class OtpResponse(BaseModel):
-    message: str
-    data: dict
-
-    class Config:
-        from_attributes = True
-
-
-# OTP Verify Schema (used when verifying OTP)
-class OtpVerify(BaseModel):
-    email: EmailStr
-    otp_code: int
-
-    class Config:
-        from_attributes = True
-
-
-# Forgot Password Request Schema (used to request a password reset link)
-class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
-
-    class Config:
-        from_attributes = True
-
-
-# Reset Password Schema (used to reset the password)
-class ResetPassword(BaseModel):
-    reset_token: str
-    new_password: str
-
-    class Config:
-        from_attributes = True
-
-
-# Change Email Schema (used for changing the user's email)
-class ChangeEmail(BaseModel):
-    current_email: EmailStr
-    new_email: EmailStr
-
-    class Config:
-        from_attributes = True
-
-
-# User Update Schema (used for updating user information)
-class UserUpdate(BaseModel):
-    full_name: Optional[str] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
-    role: Optional[int] = None  # Assuming 1 = Admin, 2 = User
-    gender: Optional[int] = None  # 1 = Male, 2 = Female
+    id: int
+    full_name: str
+    email: str
+    role: str  # Role name instead of ID
+    gender: Optional[str] = None  # Gender name instead of ID (optional)
     phone: Optional[str] = None
     address: Optional[str] = None
     image: Optional[str] = None
+    is_active: bool
+    created_at: str
 
-    # Custom validators for role and gender to ensure they are within valid range
-    @validator('role')
-    def validate_role(cls, value):
-        if value is not None and value not in [1, 2]:
-            raise ValueError('Role must be 1 (Admin) or 2 (User)')
-        return value
+    class Config:
+        from_attributes = True
+        orm_mode = True
 
-    @validator('gender')
-    def validate_gender(cls, value):
-        if value is not None and value not in [1, 2]:
-            raise ValueError('Gender must be 1 (Male) or 2 (Female)')
-        return value
+
+# OTP Request Schema
+class RequestOTPRequest(BaseModel):
+    email: EmailStr  # User email for which OTP is requested
 
     class Config:
         from_attributes = True
 
+class OTPResponseData(BaseModel):
+    otp_code: str
+    expires_in: int
 
-# Refresh Token Request Schema (used for refreshing access tokens)
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str
-
-    class Config:
-        from_attributes = True
-
-class RefreshTokenResponse(BaseModel):
-    access_token: str
-    token_type: str  # e.g., "bearer"
-    expires_in: int  # in seconds
+class OTPResponse(BaseModel):
+    message: str
+    data: OTPResponseData  # Replace dict with a structured model
 
     class Config:
         from_attributes = True
+
+# OTP Response Schema (message and OTP details)
+class OTPResponse(BaseModel):
+    message: str  # Response message
+    data: dict  # Any additional data, like OTP code or expiry time
+
+    class Config:
+        from_attributes = True
+        orm_mode = True
+
+# OTP Verification Request Schema
+class VerifyOTPRequest(BaseModel):
+    email: str
+    otp_code: str  # Ensure otp_code is defined here
+
+    class Config:
+        # The new FastAPI/Pydantic version uses `from_attributes` instead of `orm_mode`
+        from_attributes = True
+
+class OTPVerifyRequest(BaseModel):
+    email: str
+    otp_code: int
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    reset_token: str
+    new_password: str
+
+class ChangeEmailRequest(BaseModel):
+    current_email: EmailStr
+    new_email: EmailStr
+
