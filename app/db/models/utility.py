@@ -138,7 +138,7 @@ class OTP(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)  # Ensure it's unique for each user.
     otp_code = Column(Integer)
-    expiration_time = Column(DateTime, nullable=False)
+    expiration_time = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
     user_id = Column(Integer, ForeignKey("users.id"))
 
     user = relationship("User", back_populates="otp_codes")
