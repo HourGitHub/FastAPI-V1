@@ -108,9 +108,9 @@ def login_user(login_data: LoginRequest, db: Session, response: Response):
         status=200,
         type="jwt",
         data=TokenData(
-            #access_token=access_token,
+            access_token=access_token,
             access_expires_in=3600,  # 1 hour
-            #refresh_token=refresh_token,
+            refresh_token=refresh_token,
             refresh_expires_in=86400,  # 1 day
             token_type="Bearer"
         )
@@ -239,6 +239,42 @@ def verify_otp(db: Session, email: str, otp_code: str):
     db.commit()  # Commit the changes to the database
 
     return {"message": "OTP verified successfully. You can now log in."}
+
+
+# Request OTP function
+def request_otp(email: str, db: Session):
+    # Retrieve the user by email
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if the account is already active
+    if user.is_active:
+        raise HTTPException(status_code=400, detail="Account is already active")
+
+    # Generate a new OTP
+    otp_code = random.randint(100000, 999999)
+    expiry_time = datetime.now(CAMBODIA_TZ) + timedelta(minutes=5)
+
+    # Update or create an OTP entry in the database
+    existing_otp = db.query(OTP).filter(OTP.email == email).first()
+    if existing_otp:
+        existing_otp.otp_code = otp_code
+        existing_otp.expiration_time = expiry_time
+    else:
+        new_otp = OTP(email=email, otp_code=otp_code, expiration_time=expiry_time, user_id=user.id)
+        db.add(new_otp)
+
+    db.commit()
+
+    # Send the OTP to the user's email
+    try:
+        send_otp_to_email(email, otp_code, user.id)
+    except Exception as e:
+        db.rollback()  # Rollback in case of failure to send the OTP
+        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
+
+    return {"message": "OTP has been sent to your email.", "otp_code": otp_code, "expires_in": 300}
 
 
 
