@@ -63,24 +63,3 @@ def send_otp_to_email(to_email: str, otp_code: int, user_id: int):
         print(f"Failed to send OTP email: {e}")
         # You can also log the exception to a file or monitoring service if needed
 
-
-# app/utility/SMTP.py
-# import os
-# from fastapi_mail import ConnectionConfig
-# from dotenv import load_dotenv
-
-# # Load environment variables from the .env file
-# load_dotenv()
-
-# # Configuration for FastAPI Mail
-# conf = ConnectionConfig(
-#     MAIL_USERNAME=os.getenv("EMAIL_ADDRESS"),  # Get the email address from the .env file
-#     MAIL_PASSWORD=os.getenv("EMAIL_PASSWORD"),  # Get the app password from the .env file
-#     MAIL_FROM=os.getenv("EMAIL_ADDRESS"),  # Same email address for "from"
-#     MAIL_PORT=465,  # SSL port for Gmail (you may need to change it depending on your mail provider)
-#     MAIL_SERVER="smtp.gmail.com",  # For Gmail (change if using another provider)
-#     MAIL_STARTTLS=False,
-#     MAIL_SSL_TLS=True,
-#     USE_CREDENTIALS=True,
-#     VALIDATE_CERTS=True
-# )

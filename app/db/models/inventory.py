@@ -1,15 +1,13 @@
 # app/db/models/inventory.py
 
 from datetime import datetime
-import pytz
 from sqlalchemy import Column, DateTime, Integer, String, Float, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from app.db.config import Base
 from sqlalchemy import func
 from app.db.models.product import Product 
 
-# Define Cambodia Timezone
-CAMBODIA_TZ = pytz.timezone('Asia/Phnom_Penh')
+from app.utility.utc import get_current_cambodia_time
 
 class StockItem(Base):
     __tablename__ = 'stocks'
@@ -31,8 +29,8 @@ class StockItem(Base):
     stock_status_id = Column(Integer, ForeignKey("stock_status.id"), nullable=False)
     image = Column(String, nullable=True, default="")
     
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
-    updated_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ), onupdate=datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time)  
+    updated_at = Column(DateTime, default=get_current_cambodia_time, onupdate=get_current_cambodia_time)  
 
     # Relationships
     category = relationship("Category", back_populates="stocks")

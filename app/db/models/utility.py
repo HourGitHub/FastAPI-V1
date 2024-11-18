@@ -2,12 +2,11 @@
 
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from app.db.config import Base
-from datetime import datetime, timedelta
-import pytz
+from datetime import datetime
 from sqlalchemy.orm import relationship
 
-# Define the Cambodia time zone
-CAMBODIA_TZ = pytz.timezone('Asia/Phnom_Penh')
+from app.utility.utc import CAMBODIA_TZ, get_current_cambodia_time
+
 
 # Brand
 class Brand(Base):
@@ -16,7 +15,7 @@ class Brand(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     description = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     products = relationship("Product", back_populates="brand")
 
@@ -28,7 +27,7 @@ class Category(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     description = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     stocks = relationship("StockItem", back_populates="category")
     products = relationship("Product", back_populates="category")
@@ -41,7 +40,7 @@ class Color(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     description = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     products = relationship("Product", back_populates="color")
 
@@ -53,7 +52,7 @@ class Gender(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, unique=True)
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     users = relationship("User", back_populates="gender")
 
@@ -68,7 +67,7 @@ class Model(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     description = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     products = relationship("Product", back_populates="model")
 
@@ -80,7 +79,7 @@ class Role(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(50), unique=True, index=True, nullable=False)
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     users = relationship("User", back_populates="role")
 
@@ -98,7 +97,7 @@ class Supplier(Base):
     phone = Column(String, nullable=True)
     location = Column(String, nullable=True)
     status = Column(String, nullable=True, default="active")
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     # Relationship example (if needed)
     stocks = relationship("StockItem", back_populates="supplier")
@@ -112,7 +111,7 @@ class Unit(Base):
     name = Column(String, unique=True, index=True)
     abbreviation = Column(String, nullable=True)
     description = Column(String, nullable=True)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     stocks = relationship("StockItem", back_populates="unit")
 
@@ -124,7 +123,7 @@ class StockStatus(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True)
     description = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     # Relationship to Product and StockItem
     products = relationship("Product", back_populates="stock_status")
@@ -138,7 +137,11 @@ class OTP(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)  # Ensure it's unique for each user.
     otp_code = Column(Integer)
+<<<<<<< HEAD
     expiration_time = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
+=======
+    expiration_time = Column(DateTime, default=get_current_cambodia_time) 
+>>>>>>> 58b89bf (Update Hosting V1.2)
     user_id = Column(Integer, ForeignKey("users.id"))
 
     user = relationship("User", back_populates="otp_codes")
@@ -154,7 +157,7 @@ class PasswordReset(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, index=True)
     token = Column(String, index=True)
-    expiry_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ) + timedelta(minutes=10))
+    expiry_at = Column(DateTime, default=get_current_cambodia_time) 
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
     def is_expired(self):

@@ -4,13 +4,9 @@ from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.db.config import Base
 from datetime import datetime
-import pytz
 
-# Cambodia time 
-UTC_TZ = pytz.UTC
-CAMBODIA_TZ = pytz.timezone('Asia/Phnom_Penh')
+from app.utility.utc import get_current_cambodia_time
 
-# app/db/models/product.py
 class Product(Base):
     __tablename__ = "products"
 
@@ -31,8 +27,8 @@ class Product(Base):
     stock_status_id = Column(Integer, ForeignKey('stock_status.id')) 
     stock_item_id = Column(String, ForeignKey('stocks.itemId'))
 
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ))
-    updated_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ), onupdate=datetime.now(CAMBODIA_TZ))
+    created_at = Column(DateTime, default=get_current_cambodia_time)  
+    updated_at = Column(DateTime, default=get_current_cambodia_time, onupdate=get_current_cambodia_time)  
 
     # Relationships
     stock_item = relationship("StockItem", back_populates="products")

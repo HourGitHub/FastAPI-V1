@@ -3,12 +3,11 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Boolean, DateTime
 from app.db.config import Base
 from datetime import datetime
-import pytz
 from sqlalchemy.orm import relationship
 from app.db.models.login_log import LoginLog
 
-# Define the Cambodia time zone
-CAMBODIA_TZ = pytz.timezone('Asia/Phnom_Penh')
+from app.utility.utc import get_current_cambodia_time
+
 
 class User(Base):
     __tablename__ = "users"
@@ -25,7 +24,7 @@ class User(Base):
     is_active = Column(Boolean, default=False) 
 
     # Use DateTime for created_at with timezone support
-    created_at = Column(DateTime, default=lambda: datetime.now(CAMBODIA_TZ), nullable=False)
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     # Relationships
     role = relationship("Role", back_populates="users")
