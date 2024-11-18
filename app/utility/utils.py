@@ -1,17 +1,16 @@
-import pytz
-from datetime import datetime, timedelta
+# app/utility/utils.py
 
-# Define the UTC+07:00 timezone (Bangkok time)
-UTC_7 = pytz.timezone('Asia/Bangkok')
+import random
+import string
+# If you're using email sending functionality, keep FastMail imports
+# from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 
-# Utility function to get current datetime in UTC+07:00
-def get_current_time_utc_7() -> datetime:
-    return datetime.now(UTC_7)
+# Generate OTP
+def generate_otp(length: int = 6) -> str:
+    return ''.join(random.choices(string.digits, k=length))
 
-# Utility function to convert a given datetime to UTC+07:00 timezone
-def convert_to_utc_7(dt: datetime) -> datetime:
-    if dt.tzinfo is None:
-        dt = UTC_7.localize(dt)
-    return dt.astimezone(UTC_7)
-
+# Send OTP (this is just a placeholder, configure your email service accordingly)
+def send_otp(email: str, otp: str):
+    # Here you would integrate with your email service (e.g., SMTP)
+    pass
 

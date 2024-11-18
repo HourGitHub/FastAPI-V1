@@ -1,197 +1,201 @@
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+# app/api/utility/routes.py
+
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.db import get_db
-from app.schemas.inventory import StockStatusCreate
-from app.schemas.utility import BrandCreate, BrandResponse, CategoryCreate, CategoryResponse, ColorCreate, ColorResponse, ModelCreate, ModelResponse, RoleCreateRequest, GenderCreateRequest, RoleResponse, GenderResponse, StatusResponse, SupplierCreate, SupplierResponse, UnitCreate, UnitResponse
-from app.api.utility.controllers import create_brand, create_category, create_color, create_model, create_role, create_gender, create_stock_status, create_supplier, create_unit, get_all_genders, get_all_roles, get_brand, get_brands, get_categories, get_category, get_color, get_colors, get_gender_by_id, get_model, get_models, get_role_by_id, get_stock_status, get_stock_statuses, get_supplier, get_suppliers, get_unit, get_units
+from app.api.utility.controllers import (
+    create_brand, create_stock_status, delete_stock_status, get_brand, get_stock_status, update_brand, delete_brand,
+    create_category, get_category, update_category, delete_category,
+    create_color, get_color, update_color, delete_color,
+    create_gender, get_gender, update_gender, delete_gender,
+    create_model, get_model, update_model, delete_model,
+    create_role, get_role, update_role, delete_role,
+    create_supplier, get_supplier, update_stock_status, update_supplier, delete_supplier,
+    create_unit, get_unit, update_unit, delete_unit
+)
+from app.schemas.utility import (
+    BrandCreate, BrandResponse, CategoryCreate, CategoryResponse, ColorCreate, ColorResponse,
+    GenderCreate, GenderResponse, ModelCreate, ModelResponse, RoleCreate, RoleResponse,
+    StockStatusCreate, StockStatusResponse, SupplierCreate, SupplierResponse, UnitCreate, UnitResponse
+)
 
-# Utility function to raise not found exception
-def raise_not_found_exception(entity_name: str):
-    raise HTTPException(status_code=404, detail=f"{entity_name} not found")
+utility_router = APIRouter()
 
-utility = APIRouter()
+# =====================
+# Brand Endpoints
+# =====================
+@utility_router.post("/brands", response_model=BrandResponse)
+def create_new_brand(brand: BrandCreate, db: Session = Depends(get_db)):
+    return create_brand(db, brand)
 
-# Route for creating a new role
-@utility.post("/role", response_model=RoleResponse)
-def create_role_route(role_data: RoleCreateRequest, db: Session = Depends(get_db)):
-    return create_role(role_data, db)
+@utility_router.get("/brands/{brand_id}", response_model=BrandResponse)
+def get_single_brand(brand_id: int, db: Session = Depends(get_db)):
+    return get_brand(db, brand_id)
 
-# Route for getting all roles
-@utility.get("/roles", response_model=list[RoleResponse])
-def get_roles(db: Session = Depends(get_db)):
-    return get_all_roles(db)
+@utility_router.put("/brands/{brand_id}", response_model=BrandResponse)
+def update_existing_brand(brand_id: int, brand: BrandCreate, db: Session = Depends(get_db)):
+    return update_brand(db, brand_id, brand)
 
-# Route for getting a single role by ID
-@utility.get("/roles/{role_id}", response_model=RoleResponse)
-def get_role(role_id: int, db: Session = Depends(get_db)):
-    return get_role_by_id(role_id, db)
-
-# Route for creating a new gender
-@utility.post("/gender", response_model=GenderResponse)
-def create_gender_route(gender_data: GenderCreateRequest, db: Session = Depends(get_db)):
-    return create_gender(gender_data, db)
-
-# Route for getting all genders
-@utility.get("/genders", response_model=list[GenderResponse])
-def get_genders(db: Session = Depends(get_db)):
-    return get_all_genders(db)
-
-# Route for getting a single gender by ID
-@utility.get("/genders/{gender_id}", response_model=GenderResponse)
-def get_gender(gender_id: int, db: Session = Depends(get_db)):
-    return get_gender_by_id(gender_id, db)
+@utility_router.delete("/brands/{brand_id}")
+def delete_existing_brand(brand_id: int, db: Session = Depends(get_db)):
+    return delete_brand(db, brand_id)
 
 
-# Brand Routes
-@utility.post("/brand", response_model=BrandResponse)
-def create_brand_endpoint(brand: BrandCreate, db: Session = Depends(get_db)):
-    try:
-        return create_brand(db=db, brand=brand)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# =====================
+# Category Endpoints
+# =====================
+@utility_router.post("/categories", response_model=CategoryResponse)
+def create_new_category(category: CategoryCreate, db: Session = Depends(get_db)):
+    return create_category(db, category)
 
-@utility.get("/brands", response_model=List[BrandResponse])
-def read_brands(db: Session = Depends(get_db)):
-    return get_brands(db)
+@utility_router.get("/categories/{category_id}", response_model=CategoryResponse)
+def get_single_category(category_id: int, db: Session = Depends(get_db)):
+    return get_category(db, category_id)
 
-@utility.get("/brands/{brand_id}", response_model=BrandResponse)
-def read_brand(brand_id: int, db: Session = Depends(get_db)):
-    brand = get_brand(db, brand_id)
-    if not brand:
-        raise_not_found_exception("Brand")
-    return brand
+@utility_router.put("/categories/{category_id}", response_model=CategoryResponse)
+def update_existing_category(category_id: int, category: CategoryCreate, db: Session = Depends(get_db)):
+    return update_category(db, category_id, category)
 
-
-# Category Routes
-@utility.post("/category", response_model=CategoryResponse)
-def create_category_endpoint(category: CategoryCreate, db: Session = Depends(get_db)):
-    try:
-        return create_category(db=db, category=category)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@utility.get("/categories", response_model=List[CategoryResponse])
-def read_categories(db: Session = Depends(get_db)):
-    return get_categories(db)
-
-@utility.get("/categories/{category_id}", response_model=CategoryResponse)
-def read_category(category_id: int, db: Session = Depends(get_db)):
-    category = get_category(db, category_id)
-    if not category:
-        raise_not_found_exception("Category")
-    return category
+@utility_router.delete("/categories/{category_id}")
+def delete_existing_category(category_id: int, db: Session = Depends(get_db)):
+    return delete_category(db, category_id)
 
 
-# Color Routes
-@utility.post("/color", response_model=ColorResponse)
-def create_color_endpoint(color: ColorCreate, db: Session = Depends(get_db)):
-    try:
-        return create_color(db=db, color=color)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# =====================
+# Color Endpoints
+# =====================
+@utility_router.post("/colors", response_model=ColorResponse)
+def create_new_color(color: ColorCreate, db: Session = Depends(get_db)):
+    return create_color(db, color)
 
-@utility.get("/colors", response_model=List[ColorResponse])
-def read_colors(db: Session = Depends(get_db)):
-    return get_colors(db)
+@utility_router.get("/colors/{color_id}", response_model=ColorResponse)
+def get_single_color(color_id: int, db: Session = Depends(get_db)):
+    return get_color(db, color_id)
 
-@utility.get("/colors/{color_id}", response_model=ColorResponse)
-def read_color(color_id: int, db: Session = Depends(get_db)):
-    color = get_color(db, color_id)
-    if not color:
-        raise_not_found_exception("Color")
-    return color
+@utility_router.put("/colors/{color_id}", response_model=ColorResponse)
+def update_existing_color(color_id: int, color: ColorCreate, db: Session = Depends(get_db)):
+    return update_color(db, color_id, color)
 
-
-# Model Routes
-@utility.post("/model", response_model=ModelResponse)
-def create_model_endpoint(model: ModelCreate, db: Session = Depends(get_db)):
-    try:
-        return create_model(db=db, model=model)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@utility.get("/models", response_model=List[ModelResponse])
-def read_models(db: Session = Depends(get_db)):
-    return get_models(db)
-
-@utility.get("/models/{model_id}", response_model=ModelResponse)
-def read_model(model_id: int, db: Session = Depends(get_db)):
-    model = get_model(db, model_id)
-    if not model:
-        raise_not_found_exception("Model")
-    return model
+@utility_router.delete("/colors/{color_id}")
+def delete_existing_color(color_id: int, db: Session = Depends(get_db)):
+    return delete_color(db, color_id)
 
 
-# StockStatus Routes
-@utility.post("/status", response_model=StatusResponse)
-def create_stock_status_endpoint(
-    status: StockStatusCreate, db: Session = Depends(get_db)
-):
-    """
-    Endpoint to create a new stock status.
-    """
-    try:
-        return create_stock_status(db=db, status=status)
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# =====================
+# Gender Endpoints
+# =====================
+@utility_router.post("/genders", response_model=GenderResponse)
+def create_new_gender(gender: GenderCreate, db: Session = Depends(get_db)):
+    return create_gender(db, gender)
 
-@utility.get("/statuses", response_model=List[StatusResponse])
-def read_stock_statuses(db: Session = Depends(get_db)):
-    """
-    Endpoint to retrieve all stock statuses.
-    """
-    return get_stock_statuses(db)
+@utility_router.get("/genders/{gender_id}", response_model=GenderResponse)
+def get_single_gender(gender_id: int, db: Session = Depends(get_db)):
+    return get_gender(db, gender_id)
 
-@utility.get("/statuses/{status_id}", response_model=StatusResponse)
-def read_stock_status(
-    status_id: int, db: Session = Depends(get_db)
-):
-    """
-    Endpoint to retrieve a stock status by ID.
-    """
-    return get_stock_status(db, status_id)
+@utility_router.put("/genders/{gender_id}", response_model=GenderResponse)
+def update_existing_gender(gender_id: int, gender: GenderCreate, db: Session = Depends(get_db)):
+    return update_gender(db, gender_id, gender)
+
+@utility_router.delete("/genders/{gender_id}")
+def delete_existing_gender(gender_id: int, db: Session = Depends(get_db)):
+    return delete_gender(db, gender_id)
 
 
-# Supplier Routes
-@utility.post("/supplier", response_model=SupplierResponse)
-def create_supplier_endpoint(supplier: SupplierCreate, db: Session = Depends(get_db)):
-    try:
-        return create_supplier(db=db, supplier=supplier)
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# =====================
+# Model Endpoints
+# =====================
+@utility_router.post("/models", response_model=ModelResponse)
+def create_new_model(model: ModelCreate, db: Session = Depends(get_db)):
+    return create_model(db, model)
+
+@utility_router.get("/models/{model_id}", response_model=ModelResponse)
+def get_single_model(model_id: int, db: Session = Depends(get_db)):
+    return get_model(db, model_id)
+
+@utility_router.put("/models/{model_id}", response_model=ModelResponse)
+def update_existing_model(model_id: int, model: ModelCreate, db: Session = Depends(get_db)):
+    return update_model(db, model_id, model)
+
+@utility_router.delete("/models/{model_id}")
+def delete_existing_model(model_id: int, db: Session = Depends(get_db)):
+    return delete_model(db, model_id)
 
 
-@utility.get("/suppliers", response_model=List[SupplierResponse])
-def read_suppliers(db: Session = Depends(get_db)):
-    return get_suppliers(db)
+# =====================
+# Role Endpoints
+# =====================
+@utility_router.post("/roles", response_model=RoleResponse)
+def create_new_role(role: RoleCreate, db: Session = Depends(get_db)):
+    return create_role(db, role)
+
+@utility_router.get("/roles/{role_id}", response_model=RoleResponse)
+def get_single_role(role_id: int, db: Session = Depends(get_db)):
+    return get_role(db, role_id)
+
+@utility_router.put("/roles/{role_id}", response_model=RoleResponse)
+def update_existing_role(role_id: int, role: RoleCreate, db: Session = Depends(get_db)):
+    return update_role(db, role_id, role)
+
+@utility_router.delete("/roles/{role_id}")
+def delete_existing_role(role_id: int, db: Session = Depends(get_db)):
+    return delete_role(db, role_id)
 
 
-@utility.get("/suppliers/{supplier_id}", response_model=SupplierResponse)
-def read_supplier(supplier_id: int, db: Session = Depends(get_db)):
+# =====================
+# Status Endpoints
+# =====================
+@utility_router.post("/stock-statuses", response_model=StockStatusResponse)
+def create_new_stock_status(stock_status: StockStatusCreate, db: Session = Depends(get_db)):
+    return create_stock_status(db, stock_status)
+
+@utility_router.get("/stock-statuses/{stock_status_id}", response_model=StockStatusResponse)
+def get_single_stock_status(stock_status_id: int, db: Session = Depends(get_db)):
+    return get_stock_status(db, stock_status_id)
+
+@utility_router.put("/stock-statuses/{stock_status_id}", response_model=StockStatusResponse)
+def update_existing_stock_status(stock_status_id: int, stock_status: StockStatusCreate, db: Session = Depends(get_db)):
+    return update_stock_status(db, stock_status_id, stock_status)
+
+@utility_router.delete("/stock-statuses/{stock_status_id}")
+def delete_existing_stock_status(stock_status_id: int, db: Session = Depends(get_db)):
+    return delete_stock_status(db, stock_status_id)
+
+
+# =====================
+# Supplier Endpoints
+# =====================
+@utility_router.post("/suppliers", response_model=SupplierResponse)
+def create_new_supplier(supplier: SupplierCreate, db: Session = Depends(get_db)):
+    return create_supplier(db, supplier)
+
+@utility_router.get("/suppliers/{supplier_id}", response_model=SupplierResponse)
+def get_single_supplier(supplier_id: int, db: Session = Depends(get_db)):
     return get_supplier(db, supplier_id)
 
+@utility_router.put("/suppliers/{supplier_id}", response_model=SupplierResponse)
+def update_existing_supplier(supplier_id: int, supplier: SupplierCreate, db: Session = Depends(get_db)):
+    return update_supplier(db, supplier_id, supplier)
+
+@utility_router.delete("/suppliers/{supplier_id}")
+def delete_existing_supplier(supplier_id: int, db: Session = Depends(get_db)):
+    return delete_supplier(db, supplier_id)
 
 
-# Unit Routes
-@utility.post("/unit", response_model=UnitResponse)
-def create_unit_endpoint(unit: UnitCreate, db: Session = Depends(get_db)):
-    try:
-        return create_unit(db=db, unit=unit)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+# =====================
+# Unit Endpoints
+# =====================
+@utility_router.post("/units", response_model=UnitResponse)
+def create_new_unit(unit: UnitCreate, db: Session = Depends(get_db)):
+    return create_unit(db, unit)
 
-@utility.get("/units", response_model=List[UnitResponse])
-def read_units(db: Session = Depends(get_db)):
-    return get_units(db)
+@utility_router.get("/units/{unit_id}", response_model=UnitResponse)
+def get_single_unit(unit_id: int, db: Session = Depends(get_db)):
+    return get_unit(db, unit_id)
 
-@utility.get("/units/{unit_id}", response_model=UnitResponse)
-def read_unit(unit_id: int, db: Session = Depends(get_db)):
-    unit = get_unit(db, unit_id)
-    if not unit:
-        raise_not_found_exception("Unit")
-    return unit
+@utility_router.put("/units/{unit_id}", response_model=UnitResponse)
+def update_existing_unit(unit_id: int, unit: UnitCreate, db: Session = Depends(get_db)):
+    return update_unit(db, unit_id, unit)
+
+@utility_router.delete("/units/{unit_id}")
+def delete_existing_unit(unit_id: int, db: Session = Depends(get_db)):
+    return delete_unit(db, unit_id)

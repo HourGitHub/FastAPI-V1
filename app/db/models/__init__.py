@@ -1,20 +1,6 @@
-# app/db/models/__init__.py
-
-from .user import User
-from .STMP import EmailLog
-from .utility import Role, Gender, OTP, Category, Unit, Supplier 
-from .product import Product 
-from .inventory import StockItem
+from .utility import Brand, Category, Color, Gender, Model, Role, StockStatus, Supplier, Unit
 
 __all__ = [
-    'User',
-    'Role',
-    'Gender',
-    'OTP',
-    'StockItem',   
-    'Product',    
-    'Category',    
-    'Unit',  
-    'Supplier',
-    'EmailLog'
+    "Brand", "Category", "Color", "Gender", "Model", "Role", 
+    "StockStatus", "Supplier", "Unit"
 ]
