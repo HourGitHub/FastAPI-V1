@@ -1,5 +1,3 @@
-# app/api/SMTP/controllers.py
-
 from datetime import datetime, timedelta
 import secrets
 from fastapi import HTTPException
@@ -7,6 +5,10 @@ from sqlalchemy.orm import Session
 from app.db.models import User, EmailLog
 from app.schemas.SMTP import OTPResponse
 from app.utility.SMTP import send_otp_to_email
+import pytz
+
+# Cambodia timezone
+CAMBODIA_TZ = pytz.timezone("Asia/Phnom_Penh")
 
 def generate_and_send_otp(email: str, db: Session):
     # Check if user exists in the database
@@ -17,8 +19,8 @@ def generate_and_send_otp(email: str, db: Session):
     # Generate OTP code using a cryptographically secure random generator
     otp_code = secrets.randbelow(1000000)  # Generate OTP in the range [0, 999999]
 
-    # OTP expiration time (e.g., 10 minutes from now)
-    expiration_time = datetime.utcnow() + timedelta(minutes=10)
+    # OTP expiration time (e.g., 10 minutes from now, Cambodia timezone)
+    expiration_time = datetime.now(CAMBODIA_TZ) + timedelta(minutes=10)
 
     # Log the OTP in the database
     email_log = EmailLog(
@@ -38,8 +40,7 @@ def generate_and_send_otp(email: str, db: Session):
     # Return the response including the expiration time
     return OTPResponse(
         message=f"OTP sent successfully to {email}.",
-        otp_code=otp_code,  # For testing, you can remove this line in production
+        #otp_code=otp_code,  # For testing, you can remove this line in production
         expiration_time=expiration_time,
-        timestamp=datetime.utcnow()
+        timestamp=datetime.now(CAMBODIA_TZ)
     )
-
