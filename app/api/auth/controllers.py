@@ -94,13 +94,13 @@ def login_user(login_data: LoginRequest, db: Session, response: Response):
     if not verify_user_password(login_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
-    # Generate access and refresh tokens
-    access_token = create_access_token(data={"sub": user.email})
-    refresh_token = create_refresh_token(data={"sub": user.email})
+    # Generate access and refresh tokens, including user ID
+    access_token = create_access_token(data={"sub": user.email, "id": user.id})
+    refresh_token = create_refresh_token(data={"sub": user.email, "id": user.id})
 
     # Set the tokens in cookies
-    response.set_cookie(key="access_token", value=access_token, max_age=3600, httponly=True)
-    response.set_cookie(key="refresh_token", value=refresh_token, max_age=86400, httponly=True)
+    response.set_cookie(key="access_token", value=access_token, max_age=186400, httponly=True)
+    response.set_cookie(key="refresh_token", value=refresh_token, max_age=1286400, httponly=True)
 
     # Return the login response with tokens in body as well (optional)
     return LoginResponse(
@@ -109,12 +109,13 @@ def login_user(login_data: LoginRequest, db: Session, response: Response):
         type="jwt",
         data=TokenData(
             access_token=access_token,
-            access_expires_in=3600,  # 1 hour
+            access_expires_in=186400,  
             refresh_token=refresh_token,
-            refresh_expires_in=86400,  # 1 day
+            refresh_expires_in=1286400,
             token_type="Bearer"
         )
     )
+
 
 
 # Function to get a single user by ID
