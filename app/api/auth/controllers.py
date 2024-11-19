@@ -185,7 +185,7 @@ def register_user(user_data, db: Session):
     db.refresh(user)
 
     # Use get_current_cambodia_time() to get the current time in Cambodia
-    expiry_time = get_current_cambodia_time() + timedelta(minutes=5)
+    expiry_time = get_current_cambodia_time() + timedelta(minutes=1440)
 
     # Generate OTP (6-digit OTP code)
     otp_code = random.randint(100000, 999999)
@@ -204,7 +204,7 @@ def register_user(user_data, db: Session):
     return RegisterUserResponse(
         message="User successfully registered. Please verify OTP to activate your account.",
         otp_code=otp_code,  # Include the OTP code in the response (remove in production)
-        expires_in=300,  # OTP expiry time (5 minutes)
+        expires_in=86400, 
         created_at=get_current_cambodia_time(),  # Use Cambodia time for created_at
         role=role.name,
         gender=gender.name if gender else None
@@ -222,7 +222,7 @@ def request_otp(email: str, db: Session):
     # Check if an OTP already exists for the email
     existing_otp = db.query(OTP).filter(OTP.email == email).first()
     otp_code = random.randint(100000, 999999)
-    expires_in = 600  # OTP expires in 10 minutes
+    expires_in = 86400  # OTP expires in 10 minutes
 
     # Use get_current_cambodia_time() for expiration time
     expiration_time = get_current_cambodia_time() + timedelta(seconds=expires_in)
