@@ -120,27 +120,33 @@ def login_user(login_data: LoginRequest, db: Session, response: Response):
 
 # Function to get a single user by ID
 def get_user(db: Session, user_id: int):
+    # Query the user by user_id
     user = db.query(User).filter(User.id == user_id).first()
+    
+    # Raise 404 if user not found
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
+    # Extract role and gender names (handle None cases)
     role_name = user.role.name
     gender_name = user.gender.name if user.gender else None
 
+    # Create the UserResponse model
     user_response = UserResponse(
         id=user.id,
         full_name=user.full_name,
         email=user.email,
-        role=role_name,  # Use role name here
-        gender=gender_name,  # Use gender name here
+        role=role_name,
+        gender=gender_name,
         phone=user.phone,
         address=user.address,
         image=user.image,
         is_active=user.is_active,
-        created_at=user.created_at.isoformat(),  # Convert to string
+        created_at=user.created_at.isoformat(),  # Ensure datetime is ISO formatted
     )
 
-    return user_response
+    # Return the response wrapped in the 'user' key
+    return {"user": user_response}
 
 def register_user(user_data, db: Session):
     # Check if email already exists

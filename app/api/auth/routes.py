@@ -25,9 +25,9 @@ def get_all_users_route(db: Session = Depends(get_db)):
     return get_all_users(db=db)
 
 # Route for fetching a user by ID
-@auth.get("/users/{user_id}", response_model=UserResponse)
-def get_user_details(user_id: int, db: Session = Depends(get_db)):
-    return get_user(db=db, user_id=user_id)
+@auth.get("/users/{user_id}", response_model=Dict[str, UserResponse])
+def get_user_endpoint(user_id: int, db: Session = Depends(get_db)):
+    return get_user(db, user_id)
 
 
 @auth.post("/register", response_model=RegisterUserResponse)
