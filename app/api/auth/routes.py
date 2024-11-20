@@ -1,5 +1,6 @@
 # app/api/auth/routes.py
 
+from typing import Dict
 from app.security.jwt import get_access_token
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
