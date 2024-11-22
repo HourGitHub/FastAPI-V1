@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from app.api.auth.controllers import change_email, forgot_password, get_all_users, get_current_user, get_user, register_user, login_user, request_otp, reset_password, user_to_response, verify_otp
 from app.db.config import get_db
-from app.schemas.auth import ChangeEmailRequest, ForgotPasswordRequest, LoginResponse, OTPVerifyRequest, RegisterUserRequest, LoginRequest, RegisterUserResponse, RequestOTPRequest, ResetPasswordRequest, UserResponse
+from app.schemas.auth import ChangeEmailRequest, ForgotPasswordRequest, LoginResponse, OTPVerifyRequest, RegisterUserRequest, LoginRequest, RegisterUserResponse, RequestOTPRequest, ResetPasswordRequest, UserResponse, UserWrapper
 
 
 auth = APIRouter()
@@ -25,10 +25,18 @@ def get_all_users_route(db: Session = Depends(get_db)):
     return get_all_users(db=db)
 
 # Route for fetching a user by ID
-@auth.get("/users/{user_id}", response_model=UserResponse)
-def get_user_details(user_id: int, db: Session = Depends(get_db)):
-    return get_user(db=db, user_id=user_id)
+# @auth.get("/users/{user_id}", response_model=UserResponse)
+# def get_user_details(user_id: int, db: Session = Depends(get_db)):
+#     return get_user(db=db, user_id=user_id)
 
+
+# Route for fetching a user by ID
+@auth.get("/users/{user_id}", response_model=UserWrapper)
+def get_user_details(user_id: int, db: Session = Depends(get_db)):
+    # Retrieve the user using your function
+    user_response = get_user(db=db, user_id=user_id)
+    # Return the response wrapped in the 'user' key
+    return {"user": user_response}
 
 @auth.post("/register", response_model=RegisterUserResponse)
 def register_user_route(user_data: RegisterUserRequest, db: Session = Depends(get_db)):

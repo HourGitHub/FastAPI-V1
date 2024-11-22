@@ -91,3 +91,14 @@ def get_payment_status(payment_intent_id: str, db: Session):
     except StripeError as e:
         logging.error(f"Error retrieving payment status: {e.user_message}")
         raise e
+
+
+
+def get_all_payments(db: Session):
+    try:
+        # Fetch all Stripe payment records from the database
+        payments = db.query(StripePayment).all()
+        return payments
+    except Exception as e:
+        logging.error(f"Error retrieving all payments: {str(e)}")
+        raise e

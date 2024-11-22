@@ -188,3 +188,14 @@ class PaymentConfirmation(BaseModel):
 # Response model for payment status
 class PaymentStatusResponse(BaseModel):
     status: str  # Status of the payment
+
+
+class PaymentListItem(BaseModel):
+    payment_intent_id: str  # Payment intent ID
+    status: str  # Status of the payment (e.g., "succeeded", "pending", "failed")
+    amount: int  # Amount in cents (e.g., 1000 for $10.00)
+    currency: str  # The currency used for the payment
+    created_at: str  # The timestamp when the payment was created (ISO 8601 format)
+
+    class Config:
+        orm_mode = True 

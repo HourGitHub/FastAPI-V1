@@ -3,11 +3,13 @@
 # app/api/stripe/routes.py
 
 import os
+from typing import List
 from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
 from app.db import get_db  # Import the database session dependency
-from app.schemas.utility import PaymentRequest, PaymentConfirmation, PaymentStatusResponse
+from app.db.models.stripe import StripePayment
+from app.schemas.utility import PaymentListItem, PaymentRequest, PaymentConfirmation, PaymentStatusResponse
 from app.api.stripe.controllers import create_payment_intent, confirm_payment, get_payment_status
 import logging
 
@@ -60,3 +62,29 @@ async def payment_status_route(payment_intent_id: str, db: Session = Depends(get
     except Exception as e:
         logging.error(f"Error retrieving payment status: {str(e)}")
         raise HTTPException(status_code=400, detail="Error retrieving payment status")
+
+
+@stripe.get("/all-payments", response_model=List[PaymentListItem])
+async def get_all_payments(db: Session = Depends(get_db)):
+    try:
+        # Query all payments from the database
+        stripe_payments = db.query(StripePayment).all()
+
+        if not stripe_payments:
+            raise HTTPException(status_code=404, detail="No payments found")
+
+        # Convert the list of payments into a response that includes `created_at_iso` as a string
+        return [
+            {
+                "payment_intent_id": payment.payment_intent_id,
+                "status": payment.status,
+                "amount": payment.amount,
+                "currency": payment.currency,
+                "created_at": payment.created_at_iso,  # Use the ISO formatted string
+            }
+            for payment in stripe_payments
+        ]
+
+    except Exception as e:
+        logging.error(f"Error retrieving all payments: {str(e)}")
+        raise HTTPException(status_code=400, detail="Error retrieving payments")

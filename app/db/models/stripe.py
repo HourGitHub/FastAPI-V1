@@ -13,3 +13,7 @@ class StripePayment(Base):
     amount = Column(Integer)  # Store the payment amount in cents
     currency = Column(String, default="usd")
     created_at = Column(DateTime, default=get_current_cambodia_time) 
+
+    @property
+    def created_at_iso(self):
+        return self.created_at.isoformat() if self.created_at else None

@@ -77,6 +77,8 @@ class UserResponse(BaseModel):
         from_attributes = True
         orm_mode = True
 
+class UserWrapper(BaseModel):
+    user: UserResponse
 
 # OTP Request Schema
 class RequestOTPRequest(BaseModel):
