@@ -12,54 +12,7 @@ from app.db.models.stripe import StripePayment
 
 load_dotenv()
 
-# Set your secret Stripe API key here
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-
-# # Create Payment Intent
-# def create_payment_intent(amount: int, currency: str, payment_method: str):
-#     try:
-#         logging.debug(f"Received payment request: amount={amount}, currency={currency}, payment_method={payment_method}")
-        
-#         payment_intent = stripe.PaymentIntent.create(
-#             amount=amount,
-#             currency=currency,
-#             payment_method=payment_method,
-#             confirmation_method="manual",
-#             confirm=False,  # Don't confirm yet, let the client do it later
-#         )
-        
-#         logging.debug(f"Payment Intent created: {payment_intent.id}")
-#         return payment_intent.client_secret, payment_intent.id
-
-#     except StripeError as e:
-#         logging.error(f"Stripe error: {e.user_message}")
-#         raise e
-
-# # Confirm Payment Intent
-# def confirm_payment(payment_intent_id: str, return_url: str):
-#     try:
-#         payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-
-#         payment_intent_confirmed = stripe.PaymentIntent.confirm(
-#             payment_intent.id,
-#             return_url=return_url  # For redirection-based payment methods
-#         )
-
-#         return payment_intent_confirmed.status, payment_intent_confirmed.id
-
-#     except StripeError as e:
-#         logging.error(f"Stripe error: {e.user_message}")
-#         raise e
-
-# # Retrieve Payment Status
-# def get_payment_status(payment_intent_id: str):
-#     try:
-#         payment_intent = stripe.PaymentIntent.retrieve(payment_intent_id)
-#         logging.debug(f"Payment Intent status: {payment_intent.status}")
-#         return payment_intent.status
-
-#     except StripeError as e:
-#         raise e
 
 
 # Create Payment Intent and store it in the DB
