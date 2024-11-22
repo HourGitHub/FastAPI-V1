@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, DateTime
 from app.db.config import Base
 
-from app.utility.utc import get_cambodia_time
+from app.utility.utc import get_current_cambodia_time
 
 class StripePayment(Base):
     __tablename__ = "stripe_payments"
@@ -12,7 +12,7 @@ class StripePayment(Base):
     status = Column(String, default="pending")  # Example: pending, succeeded, failed
     amount = Column(Integer)  # Store the payment amount in cents
     currency = Column(String, default="usd")
-    created_at = Column(DateTime, default=get_cambodia_time) 
+    created_at = Column(DateTime, default=get_current_cambodia_time) 
 
     @property
     def created_at_iso(self):
