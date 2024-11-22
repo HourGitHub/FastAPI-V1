@@ -83,7 +83,10 @@ import logging
 
 
 os.environ['HTTP_PROXY'] = 'http://127.0.0.1:8000'
-base_url = os.getenv("BASE_URL", "http://127.0.0.1:8000")
+os.environ['HTTPS_PROXY'] = 'https://federal-gay-hour-2d599303.koyeb.app'
+
+base_url = os.getenv("BASE_URL", "http://127.0.0.1:8000", "https://federal-gay-hour-2d599303.koyeb.app")
+
 
 stripe = APIRouter()
 
