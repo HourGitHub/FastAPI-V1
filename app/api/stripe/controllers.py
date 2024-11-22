@@ -12,8 +12,8 @@ from app.db.models.stripe import StripePayment
 
 load_dotenv()
 
+# Set your secret Stripe API key here
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
-
 
 # Create Payment Intent and store it in the DB
 def create_payment_intent(amount: int, currency: str, payment_method: str, db: Session):
@@ -26,7 +26,9 @@ def create_payment_intent(amount: int, currency: str, payment_method: str, db: S
             currency=currency,
             payment_method=payment_method,
             confirmation_method="manual",
-            confirm=False,  # Don't confirm yet, let the client do it later
+            # confirm=False,  # Don't confirm yet, let the client do it later
+            confirm=True, 
+            return_url=os.getenv("RETURN_URL")
         )
         
         logging.debug(f"Payment Intent created: {payment_intent.id}")
@@ -36,7 +38,7 @@ def create_payment_intent(amount: int, currency: str, payment_method: str, db: S
             payment_intent_id=payment_intent.id,
             amount=amount,
             currency=currency,
-            status="pending",  # Initially set the status to 'pending'
+            status="succeeded",  
         )
         db.add(stripe_payment)
         db.commit()

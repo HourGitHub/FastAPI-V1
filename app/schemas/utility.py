@@ -172,14 +172,18 @@ class UnitResponse(BaseModel):
 # =====================
 
 
+
 # Request model for creating payment intent
 class PaymentRequest(BaseModel):
-    amount: int  # Amount in cents
-    currency: str = "usd"  # Default currency
-    payment_method: str  # Payment method token or ID (e.g., stripe token or payment method ID)
-    expiry_date: str = None  # Optional
-    cvc: str = None  # Optional
-    name_on_card: str = None  # Optional
+    amount: int  
+    currency: Optional [str] = "usd"  
+    payment_method: str  
+    expiry_date: Optional[str] = None  
+    cvc: Optional [str] = None  
+    name_on_card: Optional[str] = None  
+
+    class Config:
+        orm_mode = True
 
 # Request model for confirming payment
 class PaymentConfirmation(BaseModel):
@@ -188,7 +192,6 @@ class PaymentConfirmation(BaseModel):
 # Response model for payment status
 class PaymentStatusResponse(BaseModel):
     status: str  # Status of the payment
-
 
 class PaymentListItem(BaseModel):
     payment_intent_id: str  # Payment intent ID
