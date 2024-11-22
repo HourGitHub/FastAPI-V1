@@ -73,6 +73,7 @@
 # app/api/stripe/routes.py
 
 import os
+from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException, Request, Depends
 from sqlalchemy.orm import Session
 from app.db import get_db  # Import the database session dependency
@@ -80,12 +81,12 @@ from app.schemas.utility import PaymentRequest, PaymentConfirmation, PaymentStat
 from app.api.stripe.controllers import create_payment_intent, confirm_payment, get_payment_status
 import logging
 
+load_dotenv()
 
+os.environ['HTTP_PROXY'] = os.getenv("BASE_URL_LOCAL")
+os.environ['HTTPS_PROXY'] = os.getenv("BASE_URL")
 
-os.environ['HTTP_PROXY'] = 'http://127.0.0.1:8000'
-os.environ['HTTPS_PROXY'] = 'https://federal-gay-hour-2d599303.koyeb.app'
-
-base_url = os.getenv("BASE_URL", "http://127.0.0.1:8000", "https://federal-gay-hour-2d599303.koyeb.app")
+base_url = os.getenv("BASE_URL")
 
 
 stripe = APIRouter()
