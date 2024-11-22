@@ -33,8 +33,11 @@ def startup_event():
 
 
 from app.api.SMTP.routes import SMTP as smtp_router
+from app.api.stripe.routes import stripe as stripe_router
 
 app.include_router(smtp_router, prefix="/api/smtp", tags=["SMTP"])
+app.include_router(stripe_router, prefix="/api/stripe", tags=["stripe"])
+
 
 # Include routers
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])
@@ -56,8 +59,8 @@ def read_root():
 # Health check endpoint
 @app.get("/health")
 async def health_check(db: Session = Depends(get_db)):
-    client = TestClient(app)  # Initialize TestClient for making internal API requests
-    current_timestamp = datetime.utcnow().isoformat()  # Get current timestamp in ISO format
+    client = TestClient(app)  
+    current_timestamp = datetime.utcnow().isoformat()  
 
     try:
         # Database connectivity check
@@ -86,9 +89,6 @@ async def health_check(db: Session = Depends(get_db)):
         
         # Check Auth API
         auth_check = {"status": "healthy", "message": "Authentication API is working as expected"}
-        # If needed, provide a token in the header
-        # auth_token = "your-valid-jwt-token"  # Mock or retrieve a valid token
-        # headers = {"Authorization": f"Bearer {auth_token}"}
         auth_response = client.get("/api/auth/users")  # Ensure the correct route is checked
         if auth_response.status_code != 200:
             auth_check = {"status": "unhealthy", "message": f"Authentication API is not responding as expected. Status Code: {auth_response.status_code}"}

@@ -5,6 +5,7 @@ from .STMP import EmailLog
 from .utility import Role, Gender, OTP, Category, Unit, Supplier 
 from .product import Product 
 from .inventory import StockItem
+from .stripe import StripePayment
 
 __all__ = [
     'User',
@@ -16,5 +17,6 @@ __all__ = [
     'Category',    
     'Unit',  
     'Supplier',
-    'EmailLog'
+    'EmailLog',
+    'StripePayment'
 ]

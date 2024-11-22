@@ -165,3 +165,40 @@ class UnitResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# =====================
+# Stripe
+# =====================
+
+
+
+# Request model for creating payment intent
+class PaymentRequest(BaseModel):
+    amount: int  
+    currency: Optional [str] = "usd"  
+    payment_method: str  
+    expiry_date: Optional[str] = None  
+    cvc: Optional [str] = None  
+    name_on_card: Optional[str] = None  
+
+    class Config:
+        orm_mode = True
+
+# Request model for confirming payment
+class PaymentConfirmation(BaseModel):
+    payment_intent_id: str  # ID of the payment intent to confirm
+
+# Response model for payment status
+class PaymentStatusResponse(BaseModel):
+    status: str  # Status of the payment
+
+class PaymentListItem(BaseModel):
+    payment_intent_id: str  # Payment intent ID
+    status: str  # Status of the payment (e.g., "succeeded", "pending", "failed")
+    amount: int  # Amount in cents (e.g., 1000 for $10.00)
+    currency: str  # The currency used for the payment
+    created_at: str  # The timestamp when the payment was created (ISO 8601 format)
+
+    class Config:
+        orm_mode = True 

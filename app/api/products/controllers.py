@@ -10,6 +10,7 @@ from app.db.models.inventory import StockItem
 from app.schemas.product import ProductCreate, ProductResponse, ProductUpdate, ProductUpdateResponse, StockItemResponse
 from app.db.config import get_db  
 
+from app.utility.telegramAlert import send_telegram_message
 
 def create_product(db: Session, product: ProductCreate):
     # Check if the product already exists
@@ -55,6 +56,8 @@ def create_product(db: Session, product: ProductCreate):
     # Convert expiry_date to string if it's a datetime object
     expiry_date_str = stock_item.expiry_date.isoformat() if stock_item.expiry_date else None
 
+    send_telegram_message(f"✅ New product created: {db_product.productcode} - {db_product.title}.\nStock Item: {stock_item.itemId}.")
+
     # Prepare response, using `name` fields instead of `id` for related models
     return ProductResponse(
         id=db_product.id,
@@ -84,6 +87,7 @@ def create_product(db: Session, product: ProductCreate):
             barcode=stock_item.barcode
         )
     )
+
 
 #Update
 def update_product(db: Session, product_id: int, product_data: ProductUpdate):
@@ -126,6 +130,8 @@ def update_product(db: Session, product_id: int, product_data: ProductUpdate):
     # Commit the changes to the database
     db.commit()
     db.refresh(db_product)
+
+    send_telegram_message(f"🔄 Product updated: {db_product.productcode} - {db_product.title}.")
 
     # Return the updated product as a response
     return ProductUpdateResponse.from_orm(db_product)
@@ -236,7 +242,6 @@ def search_products(
 
     return products
 
-
 def delete_product(db: Session, product_id: int):
     # Fetch the product by ID
     db_product = db.query(Product).filter(Product.id == product_id).first()
@@ -248,6 +253,8 @@ def delete_product(db: Session, product_id: int):
     # Delete the product from the database
     db.delete(db_product)
     db.commit()
+
+    send_telegram_message(f"🗑️ Product deleted: {db_product.productcode} - {db_product.title}.")
 
     # Return a success message or a status code
     return {"detail": "Product deleted successfully"}
@@ -267,5 +274,8 @@ def delete_multiple_products(db: Session, product_ids: list[int]):
     # Commit the transaction
     db.commit()
 
+    send_telegram_message(f"🗑️ {len(products_to_delete)} products deleted: {', '.join([p.productcode for p in products_to_delete])}.")
     # Return a success message
     return {"detail": f"{len(products_to_delete)} products deleted successfully"}
+
+

@@ -15,6 +15,7 @@ from app.security.passwords import get_password_hash, verify_user_password
 from app.utility.SMTP import send_otp_to_email
 from app.utility.utc import CAMBODIA_TZ, get_current_cambodia_time
 
+from app.utility.telegramAlert import send_telegram_message
 
 # Function to get the current logged-in user from the access token
 def get_current_user(db: Session, token: str):
@@ -79,45 +80,6 @@ def get_all_users(db: Session):
 
     return user_responses
 
-def login_user(login_data: LoginRequest, db: Session, response: Response):
-    # Fetch user by email
-    user = db.query(User).filter(User.email == login_data.email).first()
-
-    if not user:
-        raise HTTPException(status_code=400, detail="Invalid email or password")
-
-    # Check if user is active (verified)
-    if not user.is_active:
-        raise HTTPException(status_code=400, detail="Account not yet verified. Please verify your OTP.")
-
-    # Verify password
-    if not verify_user_password(login_data.password, user.hashed_password):
-        raise HTTPException(status_code=400, detail="Invalid email or password")
-
-    # Generate access and refresh tokens, including user ID
-    access_token = create_access_token(data={"sub": user.email, "id": user.id})
-    refresh_token = create_refresh_token(data={"sub": user.email, "id": user.id})
-
-    # Set the tokens in cookies
-    response.set_cookie(key="access_token", value=access_token, max_age=186400, httponly=True)
-    response.set_cookie(key="refresh_token", value=refresh_token, max_age=1286400, httponly=True)
-
-    # Return the login response with tokens in body as well (optional)
-    return LoginResponse(
-        message="Login successful",
-        status=200,
-        type="jwt",
-        data=TokenData(
-            access_token=access_token,
-            access_expires_in=186400,  
-            refresh_token=refresh_token,
-            refresh_expires_in=1286400,
-            token_type="Bearer"
-        )
-    )
-
-
-
 # Function to get a single user by ID
 def get_user(db: Session, user_id: int):
     # Query the user by user_id
@@ -147,6 +109,54 @@ def get_user(db: Session, user_id: int):
 
     # Return the response wrapped in the 'user' key
     return {"user": user_response}
+
+def login_user(login_data: LoginRequest, db: Session, response: Response):
+    # Fetch user by email
+    user = db.query(User).filter(User.email == login_data.email).first()
+
+    if not user:
+        # Notify Telegram bot about failed login attempt (invalid email)
+        send_telegram_message(f"🔴 Failed login attempt: Invalid email {login_data.email}.")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+
+    # Check if user is active (verified)
+    if not user.is_active:
+        # Notify Telegram bot about failed login (account not verified)
+        send_telegram_message(f"🔴 Failed login attempt: Account not verified for email {login_data.email}.")
+        raise HTTPException(status_code=400, detail="Account not yet verified. Please verify your OTP.")
+
+    # Verify password
+    if not verify_user_password(login_data.password, user.hashed_password):
+        # Notify Telegram bot about failed login (incorrect password)
+        send_telegram_message(f"🔴 Failed login attempt: Incorrect password for email {login_data.email}.")
+        raise HTTPException(status_code=400, detail="Invalid email or password")
+
+    # Generate access and refresh tokens, including user ID
+    access_token = create_access_token(data={"sub": user.email, "id": user.id})
+    refresh_token = create_refresh_token(data={"sub": user.email, "id": user.id})
+
+    # Set the tokens in cookies
+    response.set_cookie(key="access_token", value=access_token, max_age=186400, httponly=True)
+    response.set_cookie(key="refresh_token", value=refresh_token, max_age=1286400, httponly=True)
+
+    # Notify Telegram bot about successful login
+    # send_telegram_message(f"✅ Successful login: User {user.email} (ID: {user.id}) logged in successfully.")
+    send_telegram_message(f"✅ Request : Function Login : User {user.email} and This logged is successfully")
+
+    # Return the login response with tokens in body as well (optional)
+    return LoginResponse(
+        message="Login successful",
+        status=200,
+        type="jwt",
+        data=TokenData(
+            access_token=access_token,
+            access_expires_in=186400,  # 1 hour
+            refresh_token=refresh_token,
+            refresh_expires_in=1286400,  # 1 day
+            token_type="Bearer"
+        )
+    )
+
 
 def register_user(user_data, db: Session):
     # Check if email already exists
@@ -207,6 +217,9 @@ def register_user(user_data, db: Session):
         db.rollback()  # Rollback the transaction if OTP sending fails
         raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
 
+    # Notify Telegram bot about successful user registration
+    send_telegram_message(f"✅ New user registered: {user.email}. Please verify the OTP.")
+
     # Return response confirming user registration
     return RegisterUserResponse(
         message="User successfully registered. Please verify OTP to activate your account.",
@@ -216,9 +229,6 @@ def register_user(user_data, db: Session):
         role=role.name,
         gender=gender.name if gender else None
     )
-
-
-
 
 # Request OTP function (already in your code)
 def request_otp(email: str, db: Session):
@@ -248,6 +258,9 @@ def request_otp(email: str, db: Session):
     # Send OTP to user's email (This will trigger the OTP email sending)
     send_otp_to_email(email, otp_code, user.id)
 
+    # Notify Telegram bot about OTP request
+    send_telegram_message(f"🔑 OTP requested for email: {email}. OTP: {otp_code}.")
+
     return {
         "message": "OTP requested successfully.",
         "data": {
@@ -257,11 +270,10 @@ def request_otp(email: str, db: Session):
         }
     }
 
-
 # Verify OTP function (already in your code)
 def verify_otp(db: Session, email: str, otp_code: str):
     # Retrieve the OTP record for the user
-    otp_record = db.query(models.OTP).filter(models.OTP.email == email, models.OTP.otp_code == otp_code).first()
+    otp_record = db.query(OTP).filter(OTP.email == email, OTP.otp_code == otp_code).first()
     
     if not otp_record:
         raise HTTPException(status_code=400, detail="Invalid OTP")
@@ -270,23 +282,23 @@ def verify_otp(db: Session, email: str, otp_code: str):
     if otp_record.expiration_time.tzinfo is None:
         otp_record.expiration_time = CAMBODIA_TZ.localize(otp_record.expiration_time)
 
-
     # Compare with the current time in the same timezone
     if otp_record.expiration_time < get_current_cambodia_time():
         raise HTTPException(status_code=400, detail="OTP has expired")
 
     # OTP is valid, proceed to activate the user
-    user = db.query(models.User).filter(models.User.email == email).first()
+    user = db.query(User).filter(User.email == email).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_active = True  # Update the user's status to active
     db.commit()  # Commit the changes to the database
 
+    # Notify Telegram bot about successful OTP verification
+    send_telegram_message(f"✅ OTP verified successfully for {email}. User is now active.")
+
     return {"message": "OTP verified successfully. You can now log in."}
-
-
-
+  
 # Forgot Password function
 def forgot_password(email: str, db: Session):
     # Retrieve user by email
@@ -299,7 +311,6 @@ def forgot_password(email: str, db: Session):
         raise HTTPException(status_code=400, detail="Account not verified. Please verify OTP before resetting password.")
 
     # Generate reset token and expiry time for the token
-    # JWT exp is handled in UTC, which is fine as is
     reset_token = jwt.encode(
         {"sub": user.email, "exp": datetime.utcnow() + timedelta(hours=1)}, 
         SECRET_KEY, 
@@ -321,7 +332,10 @@ def forgot_password(email: str, db: Session):
     db.commit()
 
     # Send reset token to the user's email
-    send_otp_to_email(user.email, reset_token, user.id) 
+    send_otp_to_email(user.email, reset_token, user.id)
+
+    # Notify Telegram bot about password reset request
+    send_telegram_message(f"🔐 Password reset requested for {email}. Reset token: {reset_token}")
 
     return {
         "message": "Password reset link sent to your email.",
@@ -359,6 +373,9 @@ def reset_password(data: ResetPasswordRequest, db: Session):
         # Clean up the used reset token
         db.delete(reset_entry)
         db.commit()
+
+        # Notify Telegram bot about password reset success
+        send_telegram_message(f"✅ Password reset successful for {email}. The user can now log in.")
 
         return {"message": "Password reset successfully."}
     except JWTError:
