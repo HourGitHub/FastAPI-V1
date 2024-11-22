@@ -33,8 +33,11 @@ def startup_event():
 
 
 from app.api.SMTP.routes import SMTP as smtp_router
+from app.api.stripe.routes import stripe as stripe_router
 
 app.include_router(smtp_router, prefix="/api/smtp", tags=["SMTP"])
+app.include_router(stripe_router, prefix="/api/stripe", tags=["stripe"])
+
 
 # Include routers
 app.include_router(auth_router, prefix="/api/auth", tags=["Auth"])

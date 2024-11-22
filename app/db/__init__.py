@@ -3,6 +3,7 @@
 from .config import get_db, SessionLocal, engine, Base  
 from .models.utility import Role, Gender, Category, Unit, Supplier
 from .models.inventory import StockItem, Product 
+from .models.stripe import StripePayment
 
 __all__ = [
     "get_db", 
@@ -15,5 +16,6 @@ __all__ = [
     "Product", 
     "Category", 
     "Unit", 
-    "Supplier"  
+    "Supplier",
+    "StripePayment"
 ]

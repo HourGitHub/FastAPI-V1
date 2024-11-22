@@ -32,4 +32,5 @@ def get_db():
 def init_db():
     # Import models here to avoid circular imports
     from app.db.models import User, OTP, Role, Gender  # Import all relevant models
+    from app.db.models.stripe import StripePayment
     Base.metadata.create_all(bind=engine) 
