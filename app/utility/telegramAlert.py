@@ -1,6 +1,6 @@
 import logging
 import os
-import requests  # Changed to use requests instead of httpx
+import requests  
 from fastapi import BackgroundTasks
 from dotenv import load_dotenv
 
@@ -21,13 +21,11 @@ def send_telegram_message(message: str):
     url = f"{TELEGRAM_API_URL}/sendMessage"
     params = {
         "chat_id": TELEGRAM_CHAT_ID,
-        "text": message,
-        "parse_mode": "Markdown"
+        "text": message,  
     }
 
     try:
-        # Use requests instead of httpx to send the message
-        response = requests.get(url, params=params, timeout=30.0)
+        response = requests.get(url, params=params, timeout=60.0) 
         response.raise_for_status()  # Raise error for bad status codes
 
         if response.status_code == 200:
@@ -37,13 +35,13 @@ def send_telegram_message(message: str):
 
     except requests.Timeout:
         logger.error("Request to Telegram API timed out.")
-        send_alert_message("⏳ *Timeout Alert!* 😅\nIt seems like we took too long to respond. Please try again later! ⏰")
+        send_alert_message("⏳ Timeout Alert! ⏰")
     except requests.RequestException as e:
         logger.error(f"Request error: {e}")
-        send_alert_message("⚠️ *Request Error!* 😞\nSomething went wrong with the request. We're looking into it! 🛠")
+        send_alert_message("⚠️ Request Error! 🛠")
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
-        send_alert_message(f"😕 *Unexpected Error!* 🤔\nSomething went wrong unexpectedly. We're investigating! 🔍")
+        send_alert_message(f"😕 Unexpected Error! 🔍")
 
 # Function to send a critical alert message (for errors, timeouts, etc.)
 def send_alert_message(message: str):

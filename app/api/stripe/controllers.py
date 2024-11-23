@@ -35,8 +35,7 @@ def create_payment_intent(amount: int, currency: str, payment_method: str, db: S
             currency=currency,
             payment_method=payment_method,
             confirmation_method="manual",
-            # confirm=False,  # Don't confirm yet, let the client do it later
-            confirm=True, 
+            confirm=True,  # Don't confirm yet, let the client do it later
             return_url=os.getenv("RETURN_URL")
         )
         
@@ -47,24 +46,21 @@ def create_payment_intent(amount: int, currency: str, payment_method: str, db: S
             payment_intent_id=payment_intent.id,
             amount=amount,
             currency=currency,
-            status="succeeded",  
+            status="succeeded",  # Set the status to 'succeeded' initially
         )
         db.add(stripe_payment)
         db.commit()
 
+        # Send success message to Telegram
         send_telegram_message(f"✅ Payment Intent created successfully: ID={payment_intent.id}, Amount={amount}, Currency={currency}")
 
         return payment_intent.client_secret, payment_intent.id
 
-    except StripeError as e:
-        logging.error(f"Stripe error: {e.user_message}")
-        send_telegram_message(f"❌ Stripe error occurred while creating payment intent: {e.user_message}")
-        return create_response(status="error", message=f"Stripe error: {e.user_message}")
-
     except Exception as e:
-        logging.error(f"Unexpected error: {str(e)}")
-        send_telegram_message(f"❌ Unexpected error while creating payment intent: {str(e)}")
-        return create_response(status="error", message=f"Unexpected error: {str(e)}")
+        # Send failure message to Telegram on error
+        send_telegram_message(f"❌ Error occurred while creating payment intent: {str(e)}")
+        return create_response(status="error", message=f"Error: {str(e)}")
+
 
 
 
@@ -129,17 +125,6 @@ def get_payment_status(payment_intent_id: str, db: Session):
         send_telegram_message(f"❌ Unexpected error while retrieving payment status: {str(e)}")
         return create_response(status="error", message=f"Unexpected error: {str(e)}")
 
-
-
-
-# def get_all_payments(db: Session):
-#     try:
-#         # Fetch all Stripe payment records from the database
-#         payments = db.query(StripePayment).all()
-#         return payments
-#     except Exception as e:
-#         logging.error(f"Error retrieving all payments: {str(e)}")
-#         raise e
 
 def get_all_payments(db: Session):
     try:
