@@ -55,7 +55,6 @@ def create_stock_item(db: Session, product: Product) -> StockItemResponse:
         db.commit()
         db.refresh(db_stock_item)
         logger.info("Created stock item: %s", db_stock_item.itemId)
-        send_telegram_message(f"✅ New stock item created: {db_stock_item.itemId} - {db_stock_item.item_name}")
     except Exception as e:
         db.rollback()
         logger.error("Error creating stock item: %s", e)
@@ -121,7 +120,6 @@ def update_stock_item(db: Session, item_id: int, stock_item: StockItemUpdate) ->
 def get_all_stock_items(db: Session) -> List[StockItemResponse]:
     """Retrieve all stock items."""
     stock_items = db.query(StockItem).all()
-    send_telegram_message(f"✅ Retrieved all stock items. Total: {len(stock_items)} items.")
     return [_generate_stock_item_response(item, db) for item in stock_items]
 
 
@@ -130,6 +128,7 @@ def get_stock_item(db: Session, item_id: int) -> StockItemResponse:
     stock_item = db.query(StockItem).filter(StockItem.id == item_id).first()
     if not stock_item:
         logger.error("Stock item not found for ID: %d", item_id)
+        send_telegram_message(f"🚨 Error: Stock item not found for ID: {item_id} when retrieving stock item.")
         raise HTTPException(status_code=404, detail="Stock item not found.")
     
     return _generate_stock_item_response(stock_item, db)
@@ -147,7 +146,6 @@ def delete_stock_item(db: Session, stock_item_id: int):
         db.delete(stock_item)
         db.commit()
         logger.info("Deleted stock item ID: %d", stock_item_id)
-        send_telegram_message(f"✅ Stock item deleted: {stock_item.itemId} - {stock_item.item_name}")
         return {"message": "Stock item deleted successfully.", "status": 200}
     except Exception as e:
         db.rollback()
